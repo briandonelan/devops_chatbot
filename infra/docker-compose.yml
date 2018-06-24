@@ -1,0 +1,29 @@
+version: '3'
+services:
+  web:
+    image: nginx
+    restart: unless-stopped
+    volumes:
+     - /home/ubuntu/nginx:/etc/nginx
+     - /var/log/nginx:/var/log/nginx
+    ports:
+     - "80:80"
+    environment:
+#     - NGINX_HOST=devops.briandonelan.com
+     - NGINX_PORT=80
+
+  mattermost:
+    image: mattermost/mattermost-preview
+    restart: unless-stopped
+    volumes:
+      - /home/ubuntu/mattermost/data:/var/lib/mysql
+    ports:
+      - "8065:8065"
+
+  jenkins:
+    image: jenkins
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+

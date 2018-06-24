@@ -1,0 +1,175 @@
+---
+- vars:
+    release: 20180421
+    anaconda_parent_dir: /opt
+    npm_user: "{{ ansible_ssh_user }}"
+    force_apt_get: yes
+  environment:
+    PATH: "{{ anaconda_parent_dir }}/anaconda/bin:{{ ansible_env.PATH }}"
+  # remote_user: root
+  hosts: all
+  roles:
+    - geerlingguy.docker
+  tasks:
+  - name: Run the equivalent of "apt-get update"
+    apt:
+      update_cache: yes
+  - name: Update all packages to the latest version
+    apt:
+      upgrade: dist
+      force_apt_get: yes
+  - name: Upgrade all packages to the latest version
+    apt:
+      name: "*"
+      state: latest
+      force_apt_get: yes
+  - name: install prereqs and docker
+    apt:
+      name: lvm2,gcc,g++,autoconf,automake,git,samba-client,samba-common,cifs-utils,dnsmasq,python-setuptools,apt-transport-https,ca-certificates,curl,software-properties-common
+      state: latest
+      force_apt_get: yes
+  - name: determine if anaconda needs installed
+    shell: "conda --version | grep conda"
+    register: conda
+    ignore_errors: yes
+  - name: run anaconda role from ansible-galaxy
+    include_role:
+      name: andrewrothstein.anaconda
+    ignore_errors: true
+    vars:
+      anaconda_make_sys_default: true
+  - name: installing docker pip
+    pip:
+      name: docker
+      state: present
+      executable: "{{ anaconda_parent_dir }}/anaconda/bin/pip"
+  - name: install docker compose via pip
+    pip:
+      name: docker-compose
+      state: present
+      executable: "{{ anaconda_parent_dir }}/anaconda/bin/pip"
+#  - name: install dockerpy via pip
+#    pip:
+#      name: docker-py
+#      state: present
+#      executable: "{{ anaconda_parent_dir }}/anaconda/bin/pip"
+#  - name: install docker-py
+#    shell: "conda install -c conda-forge docker-py"
+  - name: start docker
+    systemd:
+      daemon_reload: yes
+      enabled: yes
+      state: started
+      name: docker
+  - name: pull docker images
+    shell: "docker pull {{ item }}"
+    loop:
+    - jenkins/jenkins:2.89.4-slim
+    - mattermost/platform
+    - library/nginx
+  - name: update conda
+    shell: "conda update -n base --all"
+#  - name: check if node installed
+#    shell: "which node"
+#    ignore_errors: yes
+#    register: node
+  # - name: run node installation play
+  #   include_role:
+  #     name: geerlingguy.nodejs
+  #   vars:
+  #     nodejs_version: "8.x"
+  #     nodejs_install_npm_user: "{{ npm_user }}"
+  #     nodejs_npm_global_packages:
+  #     - name: yarn
+  #     - name: babel-cli
+  #     - name: babel-core
+  #     - name: babel-preset-env
+  #     - name: babel-preset-react
+  #     - name: create-react-app
+  #     - name: rasa-nlu-trainer
+  #   when: node.rc == 1
+  - name: create jenkins dir in ubuntu home
+    file:
+      path: /home/ubuntu/jenkins
+      state: directory
+      owner: ubuntu
+      group: ubuntu
+      mode: 0775
+  - name: create nginx dir in ubuntu home
+    file:
+      path: /home/ubuntu/nginx/sites-enabled
+      state: directory
+      owner: ubuntu
+      group: ubuntu
+      mode: 0775
+  - name: create docker-compose dir in ubuntu home
+    file:
+      path: /home/ubuntu/compose
+      state: directory
+      owner: ubuntu
+      group: ubuntu
+      mode: 0775
+  - name: create nginx logs dir
+    file:
+      path: /var/log/nginx
+      state: directory
+      owner: root
+      group: root
+      mode: 0775
+  - name: create mattermost (mysql) dir in ubuntu home
+    file:
+      path: /home/ubuntu/mattermost/data
+      state: directory
+      owner: ubuntu
+      group: ubuntu
+      mode: 0775
+  - name: copy dockercompose file into ubuntu home
+    copy:
+      src: docker-compose.yml
+      dest: /home/ubuntu/compose/docker-compose.yml
+      owner: ubuntu
+      group: ubuntu
+      mode: 0775
+  - name: copy nginx config file
+    copy:
+      src: "{{ item }}"
+      dest: "/home/ubuntu/nginx/{{ item }}"
+      owner: ubuntu
+      group: ubuntu
+      mode: 0775
+    with_items:
+      - "nginx.conf"
+      - "mime.types"
+  - name: copy nginx site config file
+    copy:
+      src: devops.briandonelan.com
+      dest: /home/ubuntu/nginx/sites-enabled/devops.briandonelan.com
+      owner: ubuntu
+      group: ubuntu
+      mode: 0775
+#  - name: docker compose up
+#    docker_service:
+#      project_src: compose
+#      build: no
+#      restarted: true
+#    register: output
+#  - name: debug
+#    debug:
+#      var: output
+#  - name: stop previous docker compose
+#    shell: "OLDPATH=$(pwd) && cd /home/ubuntu/compose && sudo docker-compose down && cd $OLDPATH && unset OLDPATH"
+#  - name: dockercompose up
+#    shell: "OLDPATH=$(pwd) && cd /home/ubuntu/compose && sudo docker-compose up -d && cd $OLDPATH && unset OLDPATH"
+  - name: copy systemd service
+    copy:
+      src: chatbot.service
+      dest: /lib/systemd/system/chatbot.service
+      owner: root
+      group: root
+      mode: 0644
+  - name: enable systemd service
+    systemd:
+      name: chatbot.service
+      state: started
+      enabled: True
+      daemon_reload: yes

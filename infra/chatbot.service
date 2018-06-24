@@ -1,0 +1,23 @@
+[Unit]
+Description=hackathon chatbot
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+
+# Remove old containers, images and volumes
+ExecStartPre=/opt/anaconda/bin/docker-compose -f /home/ubuntu/compose/docker-compose.yml down -v
+ExecStartPre=/opt/anaconda/bin/docker-compose -f /home/ubuntu/compose/docker-compose.yml rm -v
+ExecStartPre=-/bin/bash -c 'docker volume rm $(docker volume ls -q)'
+ExecStartPre=-/bin/bash -c 'docker rmi $(docker images | grep "<none>" | awk \'{print $3}\')'
+ExecStartPre=-/bin/bash -c 'docker rm -v $(docker ps -aq)'
+
+# Compose up
+ExecStart=/opt/anaconda/bin/docker-compose -f /home/ubuntu/compose/docker-compose.yml up
+
+# Compose down, remove containers and volumes
+ExecStop=/opt/anaconda/bin/docker-compose -f /home/ubuntu/compose/docker-compose.yml down -v
+
+[Install]
+WantedBy=multi-user.target
