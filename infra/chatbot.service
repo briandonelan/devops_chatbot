@@ -9,9 +9,9 @@ Restart=always
 # Remove old containers, images and volumes
 ExecStartPre=/opt/anaconda/bin/docker-compose -f /home/ubuntu/compose/docker-compose.yml down -v
 ExecStartPre=/opt/anaconda/bin/docker-compose -f /home/ubuntu/compose/docker-compose.yml rm -v
-ExecStartPre=-/bin/bash -c 'docker volume rm $(docker volume ls -q)'
-ExecStartPre=-/bin/bash -c 'docker rmi $(docker images | grep "<none>" | awk \'{print $3}\')'
-ExecStartPre=-/bin/bash -c 'docker rm -v $(docker ps -aq)'
+ExecStartPre=-/bin/bash -c 'docker volume rm $(docker volume ls -q) || /bin/true'
+ExecStartPre=-/bin/bash -c 'docker rmi $(docker images | grep "<none>" | awk \'{print $3}\') || /bin/true'
+ExecStartPre=-/bin/bash -c 'docker rm -v $(docker ps -aq) || /bin/true'
 
 # Compose up
 ExecStart=/opt/anaconda/bin/docker-compose -f /home/ubuntu/compose/docker-compose.yml up

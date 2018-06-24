@@ -67,6 +67,7 @@
     - jenkins/jenkins:2.89.4-slim
     - mattermost/platform
     - library/nginx
+    ignore_errors: true
   - name: update conda
     shell: "conda update -n base --all"
 #  - name: check if node installed
@@ -170,6 +171,6 @@
   - name: enable systemd service
     systemd:
       name: chatbot.service
-      state: started
+      state: restarted
       enabled: True
       daemon_reload: yes

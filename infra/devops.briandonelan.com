@@ -1,61 +1,53 @@
-upstream mattermost {
-   server localhost:8065;
-}
-
-upstream jenkins {
-   server localhost:8080;
-}
-
-upstream jenkinsapi {
-   server localhost:50000;
-}
-
 server {
+    listen [::]:80;
     listen 80;
-    server_name mattermost.devops.briandonelan.com;
+
+    server_name mattermost.devops.briandonelan.com *.mattermost.devops.briandonelan.com devops.briandonelan.com *.devops.briandonelan.com "";
+
+    add_header Cache-Control "no-cache, must-revalidate, max-age=0";
 
     location / {
-        proxy_pass http://mattermost;
+        proxy_pass http://127.0.0.1:8065;
         proxy_pass_request_headers on;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        # proxy_redirect $scheme://$host:8065 $scheme://$host:80;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+        proxy_redirect $scheme://$host:8065 $scheme://$host:80;
     }
 }
 
 server {
+    listen [::]:80;
     listen 80;
-    server_name jenkins.devops.briandonelan.com;
-
+    server_name jenkins.devops.briandonelan.com *.jenkins.devops.briandonelan.com;
+    add_header Cache-Control "no-cache, must-revalidate, max-age=0";
     location / {
-        proxy_pass http://jenkins;
+        proxy_pass http://127.0.0.1:8080;
         proxy_pass_request_headers on;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+        proxy_redirect $scheme://$host:8080 $scheme://$host:80;
     }
 }
 
 server {
+    listen [::]:80;
     listen 80;
-    server_name jenkinsapi.devops.briandonelan.com;
-
+    server_name jenkinsapi.devops.briandonelan.com *.jenkinsapi.devops.briandonelan.com;
+    add_header Cache-Control "no-cache, must-revalidate, max-age=0";
     location / {
-        proxy_pass http://jenkinsapi;
+        proxy_pass http://127.0.0.1:50000;
         proxy_pass_request_headers on;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        ;proxy_set_header Host $host;
+        ;proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        ;proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+        proxy_redirect $scheme://$host:50000 $scheme://$host:80;
     }
-}
-
-server {
-   listen 80;
-
-   # listen on the base host
-   server_name devops.briandonelan.com;
-
-   # and redirect to the app host (declared below)
-   return 301 http://www.mattermost.devops.briandonelan.com$request_uri;
 }
