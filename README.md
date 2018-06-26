@@ -14,4 +14,5 @@ Amazon Lex + Lambda chatbot to control Jenkins builds
 ### source materials
 - mattermost integrations: https://developers.mattermost.com/integrate/examples/
 - aws Lex samples: https://github.com/aws-samples?utf8=%E2%9C%93&q=lex&type=&language=
+- jenkins Python api: https://jenkinsapi.readthedocs.io/en/latest/
 - do we want to consider integrating with Alexa / AWS Polly?
