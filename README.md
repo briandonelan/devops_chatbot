@@ -10,3 +10,8 @@ Amazon Lex + Lambda chatbot to control Jenkins builds
 - mime.types is an nginx support file
 - nginx.conf is an nginx site file
 - playbook.yml is the ansible playbook for deploying the above to the target EC2 node
+
+### source materials
+- mattermost integrations: https://developers.mattermost.com/integrate/examples/
+- aws Lex samples: https://github.com/aws-samples?utf8=%E2%9C%93&q=lex&type=&language=
+- do we want to consider integrating with Alexa / AWS Polly?
